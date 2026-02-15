@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>NLI Predictor</title>
+    <style>
+        body { font-family: Arial; max-width: 600px; margin: 50px auto; }
+        textarea { width: 100%; height: 100px; margin-bottom: 10px; }
+        button { padding: 10px 20px; }
+        #result { margin-top: 20px; white-space: pre-line; }
+    </style>
+</head>
+<body>
+    <h2>Natural Language Inference</h2>
+    <textarea id="premise" placeholder="Enter premise..."></textarea>
+    <textarea id="hypothesis" placeholder="Enter hypothesis..."></textarea>
+    <button onclick="predict()">Predict NLI</button>
+    <button onclick="loadExample()">Load Example</button>
+    <div id="result"></div>
+
+    <script>
+        function predict() {
+            const premise = document.getElementById('premise').value;
+            const hypothesis = document.getElementById('hypothesis').value;
+            fetch('/predict', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({premise, hypothesis})
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('result').innerText = data.error;
+                } else {
+                    const probs = data.probabilities;
+                    document.getElementById('result').innerHTML = 
+                        `Prediction: ${data.label.toUpperCase()}<br>` +
+                        `Probabilities:<br>` +
+                        `  entailment: ${probs.entailment.toFixed(3)}<br>` +
+                        `  neutral: ${probs.neutral.toFixed(3)}<br>` +
+                        `  contradiction: ${probs.contradiction.toFixed(3)}`;
+                }
+            });
+        }
+
+        function loadExample() {
+            document.getElementById('premise').value = "A man is playing a guitar on stage.";
+            document.getElementById('hypothesis').value = "The man is performing music.";
+        }
+    </script>
+</body>
+</html>
